@@ -40,7 +40,11 @@ local function write_to_gitignore(content, binary_name)
     print(".gitignore file created successfully.")
 end
 
-local function main()
-    local binary_name = arg[1] or "a.out"
+local function generate_gitignore(binary_name)
+    binary_name = binary_name or "a.out"
     write_to_gitignore(IGNORE_C, binary_name)
 end
+
+return {
+    generate_gitignore = generate_gitignore
+}
