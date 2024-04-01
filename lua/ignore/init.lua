@@ -47,7 +47,7 @@ function M.update_gitignore()
     local language = io.read()
 
     -- If the language is 'C', write the IGNORE_C content to the .gitignore file
-    if language:lower() == 'c' then
+    if language and language:lower() == 'c' then
         -- Open the .gitignore file for writing
         local gitignore = io.open('.gitignore', 'w')
 
