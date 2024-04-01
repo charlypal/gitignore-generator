@@ -50,7 +50,7 @@ function M.update_gitignore(arg)
         -- Replace the %s placeholder
         if line == '%s' then
             -- Replace with the provided argument or "a.out" if no argument is provided
-            line = arg or 'a.out'
+            line = arg ~= "" and arg or 'a.out'
         end
 
         -- Write the line to the .gitignore file
