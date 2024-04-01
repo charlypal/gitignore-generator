@@ -1,4 +1,5 @@
-local json = require("dkjson")
+local M = {}
+local cjson = require("cjson")
 
 local function load_ignore_c_from_json(filename)
     local file, err = io.open(filename, "r")
@@ -10,7 +11,7 @@ local function load_ignore_c_from_json(filename)
     local json_content = file:read("*all")
     file:close()
 
-    local data = json.decode(json_content)
+    local data = cjson.decode(json_content)
     if not data or not data.IGNORE_C then
         print("Error: Invalid JSON format or missing data")
         return {}
@@ -40,7 +41,9 @@ local function write_to_gitignore(content, binary_name)
     print(".gitignore file created successfully.")
 end
 
-function Main(binary_name)
+function M.main(binary_name)
     binary_name = binary_name:gsub("'", "")
     write_to_gitignore(IGNORE_C, binary_name)
 end
+
+return M
