@@ -1,48 +1,46 @@
-local M = {}
-local cjson = require("cjson")
+-- Import LunarVim APIs
+local lv = require("lv-utils")
+local fs = require("lv-fs")
 
 local function load_ignore_c_from_json(filename)
-    local file, err = io.open(filename, "r")
-    if not file then
-        print("Error: Unable to open JSON file '" .. filename .. "': " .. err)
+    -- Load JSON content using LunarVim's file reading API
+    local json_content = fs.read_file(filename)
+    if not json_content then
+        print("Error: Unable to open JSON file")
         return {}
     end
 
-    local json_content = file:read("*all")
-    file:close()
-
-    local data = cjson.decode(json_content)
+    -- Decode JSON content
+    local data = lv.json_decode(json_content)
     if not data or not data.IGNORE_C then
-        print("Error: Invalid JSON format or missing data in file '" .. filename .. "'")
+        print("Error: Invalid JSON format or missing data")
         return {}
     end
 
     return data.IGNORE_C
 end
 
+local IGNORE_C = load_ignore_c_from_json(lv.path.join(lv.cwd, "lua", "ignore", "./lua/ignore/template.json"))
+
 local function write_to_gitignore(content, binary_name)
     local file_path = ".gitignore"
-    local file, err = io.open(file_path, "w")
-
-    if not file then
-        print("Error: Unable to create .gitignore file: " .. err)
+    
+    -- Write to .gitignore using LunarVim's file writing API
+    local success, err = fs.write_to_file(file_path, table.concat(content, "\n"))
+    if not success then
+        print("Error writing to .gitignore: " .. err)
         return
     end
 
-    for _, line in ipairs(content) do
-        -- Replace %s with binary_name
-        line = line:gsub("%%s", binary_name)
-        file:write(line .. "\n")
-    end
-
-    file:close()
     print(".gitignore file created successfully.")
 end
 
-function M.generate_gitignore(binary_name, json_path)
-    binary_name = binary_name:gsub("'", "") -- Remove single quotes
-    local IGNORE_C = load_ignore_c_from_json(json_path)
-    write_to_gitignore(IGNORE_C, binary_name)
-end
+-- Extract binary name from arguments (if provided)
+local binary_name = lv.cli_args[1] or "a.out"
+write_to_gitignore(IGNORE_C, binary_name)
 
-return M
+-- Expose functions for use in LunarVim configuration
+return {
+    load_ignore_c_from_json = load_ignore_c_from_json,
+    write_to_gitignore = write_to_gitignore
+}
