@@ -1,61 +1,27 @@
-local M = {}
+local json = require("dkjson")
 
-local IGNORE_C = {
-    "# Authored by @charlypal",
-    "# Object File",
-    "*.o",
-    "*.ko",
-    "*.obj",
-    "*.elf",
-    "",
-    "# Librairies",
-    "*.lib",
-    "*.a",
-    "*.la",
-    "*.lo",
-    "",
-    "# Executable",
-    "*.exe",
-    "*.out",
-    "*.app",
-    "*.hex",
-    "*.sh",
-    "",
-    "# Debug output",
-    "vgcore.*",
-    "gmon.out",
-    "*.gcda",
-    "*.gcno",
-    "perf.data",
-    "strace.out",
-    "*.dot",
-    "",
-    "# Subject File",
-    "*.pdf",
-    "",
-    "# EPITECH Coding Style",
-    "coding-style-reports.log",
-    "",
-    "# Binary File",
-    "%s"
-}
-
-
-local function customize_ignore_c(binary_name)
-    local customized_ignore_c = {}
-    for _, line in ipairs(IGNORE_C) do
-        if type(line) == "string" then
-            customized_ignore_c[#customized_ignore_c + 1] = line:gsub("%%s", binary_name)
-        else
-            print("Error: line is not a string")
-        end
+local function load_ignore_c_from_json(filename)
+    local file, err = io.open(filename, "r")
+    if not file then
+        print("Error: Unable to open JSON file - " .. err)
+        return {}
     end
-    return customized_ignore_c
+
+    local json_content = file:read("*all")
+    file:close()
+
+    local data = json.decode(json_content)
+    if not data or not data.IGNORE_C then
+        print("Error: Invalid JSON format or missing data")
+        return {}
+    end
+
+    return data.IGNORE_C
 end
 
-local function generate_gitignore_c(binary_name)
-    local customized_ignore_c = customize_ignore_c(binary_name)
+local IGNORE_C = load_ignore_c_from_json("./lua/ignore/template.json")
 
+local function write_to_gitignore(content, binary_name)
     local file_path = ".gitignore"
     local file, err = io.open(file_path, "w")
 
@@ -64,17 +30,17 @@ local function generate_gitignore_c(binary_name)
         return
     end
 
-    for _, line in ipairs(customized_ignore_c) do
+    for _, line in ipairs(content) do
+        -- Replace %s with binary_name
+        line = line:gsub("%%s", binary_name)
         file:write(line .. "\n")
     end
 
     file:close()
-    print(".gitignore for C project generated successfully.")
+    print(".gitignore file created successfully.")
 end
 
-function M.main(binary_name)
+function Main(binary_name)
     binary_name = binary_name:gsub("'", "")
-    generate_gitignore_c(binary_name)
+    write_to_gitignore(IGNORE_C, binary_name)
 end
-
-return M
