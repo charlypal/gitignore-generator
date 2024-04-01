@@ -41,23 +41,34 @@ local IGNORE_C =
     "%s"
 }
 
-function M.update_gitignore(arg)
-    -- Open the .gitignore file for writing
-    local gitignore = io.open('.gitignore', 'w')
+function M.update_gitignore()
+    -- Ask for the programming language
+    io.write("Enter the programming language: ")
+    local language = io.read()
 
-    -- Iterate over the IGNORE_C table
-    for _, line in ipairs(IGNORE_C) do
-        -- Replace the %s placeholder
-        if line == '%s' then
-            -- Replace with the provided argument or "a.out" if no argument is provided
-            line = arg ~= "" and arg or 'a.out'
+    -- If the language is 'C', write the IGNORE_C content to the .gitignore file
+    if language:lower() == 'c' then
+        -- Open the .gitignore file for writing
+        local gitignore = io.open('.gitignore', 'w')
+
+        -- Iterate over the IGNORE_C table
+        for _, line in ipairs(IGNORE_C) do
+            -- Replace the %s placeholder
+            if line == '%s' then
+                -- Replace with "a.out"
+                line = 'a.out'
+            end
+
+            -- Write the line to the .gitignore file
+            gitignore:write(line .. '\n')
         end
 
-        -- Write the line to the .gitignore file
-        gitignore:write(line .. '\n')
+        gitignore:close()
+    else
+        -- If the language is not 'C', just create an empty .gitignore file
+        local gitignore = io.open('.gitignore', 'w')
+        gitignore:close()
     end
-
-    gitignore:close()
 end
 
 return M
