@@ -1,50 +1,32 @@
-local json = require("dkjson")
+local dkjson = require 'dkjson'
 
-local function load_ignore_c_from_json(filename)
-    local file, err = io.open(filename, "r")
-    if not file then
-        print("Error: Unable to open JSON file - " .. err)
-        return {}
-    end
+local M = {}
 
-    local json_content = file:read("*all")
+function M.update_gitignore(arg)
+    -- Read the template.json file
+    local file = io.open('lua/ignore/template.json', 'r')
+    local content = file:read('*all')
     file:close()
 
-    local data = json.decode(json_content)
-    if not data or not data.IGNORE_C then
-        print("Error: Invalid JSON format or missing data")
-        return {}
+    -- Parse the JSON content into a Lua table
+    local data = dkjson.decode(content)
+
+    -- Open the .gitignore file for writing
+    local gitignore = io.open('.gitignore', 'w')
+
+    -- Iterate over the IGNORE_C table
+    for _, line in ipairs(data.IGNORE_C) do
+        -- Replace the %s placeholder
+        if line == '%s' then
+            -- Replace with the provided argument or "a.out" if no argument is provided
+            line = arg or 'a.out'
+        end
+
+        -- Write the line to the .gitignore file
+        gitignore:write(line .. '\n')
     end
 
-    return data.IGNORE_C
+    gitignore:close()
 end
 
-local IGNORE_C = load_ignore_c_from_json("./lua/ignore/template.json")
-
-local function write_to_gitignore(content, binary_name)
-    local file_path = ".gitignore"
-    local file, err = io.open(file_path, "w")
-
-    if not file then
-        print("Error opening file: " .. err)
-        return
-    end
-
-    for _, line in ipairs(content) do
-        -- Replace %s with binary_name
-        line = line:gsub("%%s", binary_name)
-        file:write(line .. "\n")
-    end
-
-    file:close()
-    print(".gitignore file created successfully.")
-end
-
-local function generate_gitignore(binary_name)
-    binary_name = binary_name or "a.out"
-    write_to_gitignore(IGNORE_C, binary_name)
-end
-
-return {
-    generate_gitignore = generate_gitignore
-}
+return M
