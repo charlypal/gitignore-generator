@@ -1,5 +1,3 @@
-local dkjson = require 'dkjson'
-
 local M = {}
 
 local IGNORE_C =
