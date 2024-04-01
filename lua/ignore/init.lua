@@ -41,13 +41,9 @@ local IGNORE_C =
     "%s"
 }
 
-function M.update_gitignore()
-    -- Ask for the programming language
-    io.write("Enter the programming language: ")
-    local language = io.read()
-
+function M.update_gitignore(language, binary)
     -- If the language is 'C', write the IGNORE_C content to the .gitignore file
-    if language and language:lower() == 'c' then
+    if language:lower() == 'c' then
         -- Open the .gitignore file for writing
         local gitignore = io.open('.gitignore', 'w')
 
@@ -55,8 +51,8 @@ function M.update_gitignore()
         for _, line in ipairs(IGNORE_C) do
             -- Replace the %s placeholder
             if line == '%s' then
-                -- Replace with "a.out"
-                line = 'a.out'
+                -- Replace with the provided binary name or "a.out" if no binary name is provided
+                line = binary ~= "" and binary or 'a.out'
             end
 
             -- Write the line to the .gitignore file
